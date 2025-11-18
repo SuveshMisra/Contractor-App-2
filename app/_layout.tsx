@@ -1,4 +1,5 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
+import "../global.css";
 import { AuthProvider, useAuth } from '../ctx';
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
