@@ -19,6 +19,9 @@ type Review = {
 
 type Profile = {
   full_name: string;
+  surname?: string;
+  contact_details?: string;
+  stand_number?: string;
   email: string;
   estate?: {
     name: string;
@@ -39,7 +42,7 @@ export default function ResidentProfile() {
         // 1. Get Profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('full_name, estate_id')
+          .select('full_name, surname, contact_details, stand_number, estate_id')
           .eq('id', session?.user.id)
           .single();
 
@@ -57,6 +60,9 @@ export default function ResidentProfile() {
 
         setProfile({
             full_name: profileData.full_name,
+            surname: profileData.surname,
+            contact_details: profileData.contact_details,
+            stand_number: profileData.stand_number,
             email: session?.user.email || '',
             estate: { name: estateName }
         });
@@ -100,6 +106,8 @@ export default function ResidentProfile() {
             <View className="mb-6">
                 <Text className="text-xl font-bold text-slate-800 mb-1">{profile?.full_name}</Text>
                 <Text className="text-slate-500 mb-1">{profile?.email}</Text>
+                {profile?.contact_details && <Text className="text-slate-600 mb-1">{profile.contact_details}</Text>}
+                {profile?.stand_number && <Text className="text-slate-600 mb-1">Stand: {profile.stand_number}</Text>}
                 {profile?.estate?.name && (
                     <View className="bg-blue-50 self-start px-3 py-1 rounded-full mt-2">
                         <Text className="text-blue-700 text-xs font-bold uppercase tracking-wide">{profile.estate.name}</Text>

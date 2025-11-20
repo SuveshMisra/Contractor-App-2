@@ -15,6 +15,9 @@ export type Database = {
           role: 'admin' | 'contractor' | 'resident'
           estate_id: string | null
           full_name: string | null
+          surname: string | null
+          contact_details: string | null
+          stand_number: string | null
           created_at: string
         }
         Insert: {
@@ -22,6 +25,9 @@ export type Database = {
           role: 'admin' | 'contractor' | 'resident'
           estate_id?: string | null
           full_name?: string | null
+          surname?: string | null
+          contact_details?: string | null
+          stand_number?: string | null
           created_at?: string
         }
         Update: {
@@ -29,6 +35,9 @@ export type Database = {
           role?: 'admin' | 'contractor' | 'resident'
           estate_id?: string | null
           full_name?: string | null
+          surname?: string | null
+          contact_details?: string | null
+          stand_number?: string | null
           created_at?: string
         }
         Relationships: [
@@ -61,6 +70,152 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
+      }
+      categories: {
+        Row: {
+          id: string
+          name: string
+          group_name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          group_name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          group_name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          id: string
+          name: string
+          category_id: string | null
+          contact_details: string | null
+          status: 'active' | 'inactive' | 'pending' | 'defunct'
+          upvotes: number
+          downvotes: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          category_id?: string | null
+          contact_details?: string | null
+          status?: 'active' | 'inactive' | 'pending' | 'defunct'
+          upvotes?: number
+          downvotes?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          category_id?: string | null
+          contact_details?: string | null
+          status?: 'active' | 'inactive' | 'pending' | 'defunct'
+          upvotes?: number
+          downvotes?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      supplier_votes: {
+        Row: {
+          id: string
+          supplier_id: string
+          user_id: string
+          vote_direction: 'up' | 'down'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          supplier_id: string
+          user_id: string
+          vote_direction: 'up' | 'down'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          supplier_id?: string
+          user_id?: string
+          vote_direction?: 'up' | 'down'
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_votes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reports: {
+        Row: {
+          id: string
+          user_id: string
+          supplier_id: string | null
+          description: string
+          type: 'snag' | 'suggestion' | 'incorrect_details' | 'recommendation_request'
+          status: 'open' | 'resolved'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          supplier_id?: string | null
+          description: string
+          type: 'snag' | 'suggestion' | 'incorrect_details' | 'recommendation_request'
+          status?: 'open' | 'resolved'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          supplier_id?: string | null
+          description?: string
+          type?: 'snag' | 'suggestion' | 'incorrect_details' | 'recommendation_request'
+          status?: 'open' | 'resolved'
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       contractor_estates: {
         Row: {

@@ -10,6 +10,8 @@ export default function AdminDashboard() {
   
   const menuItems = [
       { title: 'Manage Users', href: '/admin/users', description: 'View and edit user roles and assignments' },
+      { title: 'Manage Suppliers', href: '/admin/suppliers', description: 'Add, edit or approve service providers' },
+      { title: 'Manage Categories', href: '/admin/categories', description: 'Configure provider categories' },
       { title: 'Manage Estates', href: '/admin/estates', description: 'Add or remove estates' },
       { title: 'Change Password', href: '/change-password', description: 'Update your login password' },
   ];

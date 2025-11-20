@@ -8,9 +8,12 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 
 export default function Register() {
+  const [firstName, setFirstName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [contactDetails, setContactDetails] = useState('');
+  const [standNumber, setStandNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'resident' | 'contractor'>('resident');
   const [loading, setLoading] = useState(false);
   const [estates, setEstates] = useState<{id: string, name: string}[]>([]);
@@ -30,8 +33,8 @@ export default function Register() {
         return;
     }
 
-    if (!fullName.trim()) {
-        Alert.alert('Please enter your full name');
+    if (!firstName.trim() || !surname.trim()) {
+        Alert.alert('Please enter your name and surname');
         return;
     }
 
@@ -41,14 +44,16 @@ export default function Register() {
     }
 
     setLoading(true);
-    console.log('Signing up with:', { email, role, fullName, estateId: role === 'resident' ? estateId : null });
     
     const { data: { session }, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: fullName,
+          full_name: `${firstName} ${surname}`,
+          surname: surname,
+          contact_details: contactDetails,
+          stand_number: standNumber,
           role: role,
           estate_id: role === 'resident' ? estateId : null,
         },
@@ -86,25 +91,47 @@ export default function Register() {
         </View>
 
         <Input
-          label="Full Name"
-          placeholder="Full Name"
-          value={fullName}
-          onChangeText={setFullName}
+          label="Name"
+          placeholder="Name"
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+
+        <Input
+          label="Surname"
+          placeholder="Surname"
+          value={surname}
+          onChangeText={setSurname}
+        />
+
+        <Input
+          label="Contact Details"
+          placeholder="Phone number, etc."
+          value={contactDetails}
+          onChangeText={setContactDetails}
         />
 
         {role === 'resident' && (
-            <View className="mb-4">
-                <Text className="text-sm font-medium text-slate-700 mb-1.5">Estate</Text>
-                <TouchableOpacity 
-                    onPress={() => setShowEstateModal(true)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg flex-row justify-between items-center"
-                >
-                    <Text className={estateId ? 'text-slate-900' : 'text-slate-400'}>
-                        {estateId ? estates.find(e => e.id === estateId)?.name : 'Select Estate'}
-                    </Text>
-                    <Text className="text-slate-400">▼</Text>
-                </TouchableOpacity>
-            </View>
+            <>
+                <View className="mb-4">
+                    <Text className="text-sm font-medium text-slate-700 mb-1.5">Estate</Text>
+                    <TouchableOpacity 
+                        onPress={() => setShowEstateModal(true)}
+                        className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg flex-row justify-between items-center"
+                    >
+                        <Text className={estateId ? 'text-slate-900' : 'text-slate-400'}>
+                            {estateId ? estates.find(e => e.id === estateId)?.name : 'Select Estate'}
+                        </Text>
+                        <Text className="text-slate-400">▼</Text>
+                    </TouchableOpacity>
+                </View>
+                <Input
+                    label="Stand Number"
+                    placeholder="Stand Number"
+                    value={standNumber}
+                    onChangeText={setStandNumber}
+                />
+            </>
         )}
 
         <Input

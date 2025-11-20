@@ -1,118 +1,101 @@
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useRouter, Link } from 'expo-router';
 import { useAuth } from '../../ctx';
-import { Link } from 'expo-router';
 import { ScreenLayout } from '../../components/ScreenLayout';
 import { Card } from '../../components/Card';
-import { Button } from '../../components/Button';
-
-type Contractor = {
-  id: string;
-  full_name: string;
-  role: string;
-};
+import { supabase } from '../../lib/supabase';
 
 export default function ResidentHome() {
   const { session } = useAuth();
-  const [contractors, setContractors] = useState<Contractor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [estateName, setEstateName] = useState<string>('');
+  const router = useRouter();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
-    if (!session) return;
+      // Check for unread notifications (recommendation requests mainly)
+      // For MVP, we just count open 'recommendation_request' reports from others?
+      // Spec: "Notification needs to stay open for 3 days, as multiple users can submit recommendations."
+      // So we check for reports of type 'recommendation_request' created in last 3 days.
+      
+      checkNotifications();
+  }, []);
 
-    async function loadData() {
+  async function checkNotifications() {
       try {
-        // 1. Get Resident's Estate
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('estate_id')
-          .eq('id', session?.user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        if (!profile?.estate_id) {
-          // Handle case where resident has no estate
-          setLoading(false);
-          return;
-        }
-
-        // 2. Get Estate Name
-        const { data: estate } = await supabase
-          .from('estates')
-          .select('name')
-          .eq('id', profile.estate_id)
-          .single();
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
         
-        if (estate) setEstateName(estate.name);
-
-        // 3. Get Contractors for this Estate
-        const { data: links, error: linkError } = await supabase
-          .from('contractor_estates')
-          .select('contractor_id')
-          .eq('estate_id', profile.estate_id);
-
-        if (linkError) throw linkError;
-
-        if (links && links.length > 0) {
-          const contractorIds = links.map(l => l.contractor_id);
-          const { data: contractorsData, error: contractorsError } = await supabase
-            .from('profiles')
-            .select('id, full_name, role')
-            .in('id', contractorIds)
-            .eq('role', 'contractor');
-          
-          if (contractorsError) throw contractorsError;
-          setContractors(contractorsData || []);
-        }
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setLoading(false);
+        const { count } = await supabase
+            .from('reports')
+            .select('*', { count: 'exact', head: true })
+            .eq('type', 'recommendation_request')
+            .gt('created_at', threeDaysAgo.toISOString());
+        
+        setUnreadNotifications(count || 0);
+      } catch (e) {
+          console.error(e);
       }
-    }
-
-    loadData();
-  }, [session]);
-
-  if (loading) {
-    return <View className="flex-1 justify-center items-center bg-slate-50"><ActivityIndicator color="#2563eb" /></View>;
   }
 
   return (
     <ScreenLayout>
-      <View className="flex-row justify-between items-start mb-6">
+      <View className="flex-row justify-between items-center mb-8">
         <View>
-            <Text className="text-3xl font-bold text-slate-900">Contractors</Text>
-            {estateName ? <Text className="text-slate-500 mt-1">Estate: <Text className="font-semibold text-slate-700">{estateName}</Text></Text> : null}
+            <Text className="text-3xl font-bold text-slate-900">Welcome</Text>
+            <Text className="text-slate-500 text-lg">{session?.user.user_metadata.full_name?.split(' ')[0] || 'Resident'}</Text>
         </View>
-        <Link href="/(resident)/profile" asChild>
-            <Button title="My Profile" variant="outline" className="px-3 h-10" />
+        
+        <Link href="/(resident)/notifications" asChild>
+            <TouchableOpacity className="relative p-2">
+                <Text className="text-3xl">🔔</Text>
+                {unreadNotifications > 0 && (
+                    <View className="absolute top-0 right-0 bg-red-500 rounded-full w-5 h-5 justify-center items-center border border-white">
+                        <Text className="text-white text-xs font-bold">{unreadNotifications}</Text>
+                    </View>
+                )}
+            </TouchableOpacity>
         </Link>
       </View>
       
-      <FlatList
-        data={contractors}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <Link href={`/(resident)/contractor/${item.id}`} asChild>
-            <TouchableOpacity>
-                <Card className="mb-3 p-4 flex-row justify-between items-center active:bg-slate-50">
-                    <View>
-                        <Text className="text-lg font-semibold text-slate-900">{item.full_name}</Text>
-                        <Text className="text-slate-500 capitalize text-sm">{item.role}</Text>
-                    </View>
-                    <Text className="text-blue-600 font-medium">View Profile ›</Text>
-                </Card>
+      <View className="space-y-4">
+        <TouchableOpacity 
+            className="bg-blue-600 rounded-xl p-6 shadow-lg active:bg-blue-700"
+            onPress={() => router.push('/(resident)/search')}
+        >
+            <Text className="text-white text-2xl font-bold text-center mb-1">🔍 Search Service Provider</Text>
+            <Text className="text-blue-100 text-center text-sm">Find & Recommend Providers</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+            className="bg-indigo-600 rounded-xl p-6 shadow-lg active:bg-indigo-700"
+            onPress={() => router.push('/(resident)/top-providers')}
+        >
+            <Text className="text-white text-2xl font-bold text-center mb-1">⭐ Top Providers</Text>
+            <Text className="text-indigo-100 text-center text-sm">Browse by Category & Rating</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+            className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 active:bg-slate-50"
+            onPress={() => router.push('/(resident)/my-reports')}
+        >
+            <Text className="text-slate-800 text-xl font-bold text-center mb-1">📄 Reports</Text>
+            <Text className="text-slate-500 text-center text-sm">View your history</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+            className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 active:bg-slate-50"
+            onPress={() => router.push('/(resident)/report?type=snag')}
+        >
+            <Text className="text-slate-800 text-xl font-bold text-center mb-1">⚠️ Log a Snag</Text>
+            <Text className="text-slate-500 text-center text-sm">Report issues or suggestions</Text>
+        </TouchableOpacity>
+
+        <Link href="/(resident)/profile" asChild>
+            <TouchableOpacity className="bg-slate-100 rounded-xl p-4 active:bg-slate-200 mt-4">
+                <Text className="text-slate-700 font-semibold text-center">My Profile</Text>
             </TouchableOpacity>
-          </Link>
-        )}
-        ListEmptyComponent={
-          <Text className="text-center text-slate-500 py-10 bg-slate-50 rounded-lg border border-slate-100 border-dashed">No contractors found for your estate.</Text>
-        }
-      />
+        </Link>
+      </View>
     </ScreenLayout>
   );
 }
