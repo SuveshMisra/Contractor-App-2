@@ -26,7 +26,19 @@ export default function Register() {
         return;
     }
 
+    if (!fullName.trim()) {
+        Alert.alert('Please enter your full name');
+        return;
+    }
+
+    if (password.length < 6) {
+        Alert.alert('Password must be at least 6 characters');
+        return;
+    }
+
     setLoading(true);
+    console.log('Signing up with:', { email, role, fullName, estateId: role === 'resident' ? estateId : null });
+    
     const { data: { session }, error } = await supabase.auth.signUp({
       email,
       password,
@@ -34,13 +46,19 @@ export default function Register() {
         data: {
           full_name: fullName,
           role: role,
-          estate_id: estateId,
+          estate_id: role === 'resident' ? estateId : null,
         },
       },
     });
 
     if (error) {
-        Alert.alert(error.message);
+        console.error('Signup Error Details:', {
+            message: error.message,
+            name: error.name,
+            status: error.status,
+            stack: error.stack
+        });
+        Alert.alert('Signup Failed', `Error: ${error.message}\nPlease check console for details.`);
     } else {
         if (!session) Alert.alert('Please check your inbox for email verification!');
     }

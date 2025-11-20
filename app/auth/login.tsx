@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'expo-router';
@@ -7,15 +7,21 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   async function signInWithEmail() {
     setLoading(true);
+    setErrorMessage('');
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) Alert.alert(error.message);
+    if (error) {
+      setErrorMessage(error.message);
+      // Also log for debugging purposes
+      console.error('Login error:', error); 
+    }
     setLoading(false);
   }
 
@@ -24,6 +30,12 @@ export default function Login() {
       <View className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
         <Text className="text-2xl font-bold mb-6 text-center text-gray-800">Welcome Back</Text>
         
+        {errorMessage ? (
+          <View className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            <Text className="text-red-700">{errorMessage}</Text>
+          </View>
+        ) : null}
+
         <TextInput
           className="border border-gray-300 rounded-md p-3 mb-4 bg-white"
           onChangeText={(text) => setEmail(text)}
