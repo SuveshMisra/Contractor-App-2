@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { Link } from 'expo-router';
 import { useAuth } from '../../ctx';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -40,9 +41,16 @@ export default function ContractorDashboard() {
     <View className="flex-1 p-4 bg-white">
       <View className="flex-row justify-between items-center mb-6">
          <Text className="text-2xl font-bold">My Reviews</Text>
-         <TouchableOpacity onPress={signOut} className="bg-red-100 px-3 py-2 rounded-lg">
-            <Text className="text-red-600 font-bold">Sign Out</Text>
-         </TouchableOpacity>
+         <View className="flex-row gap-2">
+             <Link href="/change-password" asChild>
+                <TouchableOpacity className="bg-gray-100 px-3 py-2 rounded-lg">
+                    <Text className="text-blue-600 font-bold">Pwd</Text>
+                </TouchableOpacity>
+             </Link>
+             <TouchableOpacity onPress={signOut} className="bg-red-100 px-3 py-2 rounded-lg">
+                <Text className="text-red-600 font-bold">Sign Out</Text>
+             </TouchableOpacity>
+         </View>
       </View>
 
       {loading ? (

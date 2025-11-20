@@ -21,6 +21,12 @@ export default function AdminDashboard() {
         </TouchableOpacity>
       </Link>
 
+      <Link href="/change-password" asChild>
+        <TouchableOpacity className="bg-gray-100 p-4 rounded-lg mb-4">
+          <Text className="text-lg font-semibold">Change Password</Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity onPress={signOut} className="bg-red-500 p-4 rounded-lg mt-auto">
         <Text className="text-white text-center font-bold">Sign Out</Text>
       </TouchableOpacity>

@@ -13,11 +13,14 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === 'auth';
+    const isChangePassword = segments[0] === 'change-password';
 
     if (!session && !inAuthGroup) {
       router.replace('/auth/login');
     } else if (session && role) {
       // Redirect logic based on role from database
+      if (isChangePassword) return;
+
       const isAtAdmin = segments[0] === 'admin';
       const isAtContractor = segments[0] === '(contractor)';
       const isAtResident = segments[0] === '(resident)';

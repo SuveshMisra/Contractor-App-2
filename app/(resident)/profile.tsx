@@ -2,7 +2,7 @@ import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, Alert } from
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../ctx';
-import { useRouter } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 
 type Review = {
   id: string;
@@ -101,7 +101,13 @@ export default function ResidentProfile() {
             <Text className="text-gray-500">Estate: {profile.estate.name}</Text>
         )}
         
-        <TouchableOpacity onPress={handleSignOut} className="mt-4 bg-gray-200 p-3 rounded-md items-center">
+        <Link href="/change-password" asChild>
+            <TouchableOpacity className="mt-4 bg-gray-100 p-3 rounded-md items-center mb-2">
+                <Text className="text-blue-600 font-semibold">Change Password</Text>
+            </TouchableOpacity>
+        </Link>
+
+        <TouchableOpacity onPress={handleSignOut} className="bg-gray-200 p-3 rounded-md items-center">
             <Text className="text-gray-700 font-semibold">Sign Out</Text>
         </TouchableOpacity>
       </View>
