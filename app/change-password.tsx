@@ -117,7 +117,7 @@ export default function ChangePassword() {
 
         <TouchableOpacity 
             className="mt-4 p-3"
-            onPress={() => router.back()}
+            onPress={() => router.replace('/')}
             disabled={loading}
         >
           <Text className="text-gray-600 text-center">Cancel</Text>
