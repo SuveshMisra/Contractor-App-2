@@ -81,9 +81,11 @@ export default function ResidentHome() {
     <View className="flex-1 p-4 bg-gray-50">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-2xl font-bold text-gray-800">Contractors</Text>
-        <TouchableOpacity onPress={signOut} className="bg-gray-200 p-2 rounded-md">
-            <Text className="text-xs">Sign Out</Text>
-        </TouchableOpacity>
+        <Link href="/(resident)/profile" asChild>
+          <TouchableOpacity className="bg-blue-100 p-2 rounded-md">
+              <Text className="text-blue-700 text-xs font-bold">My Profile</Text>
+          </TouchableOpacity>
+        </Link>
       </View>
       
       {estateName ? <Text className="mb-4 text-gray-600">Estate: {estateName}</Text> : null}
@@ -98,7 +100,7 @@ export default function ResidentHome() {
                 <Text className="text-lg font-semibold">{item.full_name}</Text>
                 <Text className="text-gray-500 capitalize">{item.role}</Text>
               </View>
-              <Text className="text-blue-500">View</Text>
+              <Text className="text-blue-500">View Profile</Text>
             </TouchableOpacity>
           </Link>
         )}
