@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -31,6 +31,15 @@ export interface Database {
           full_name?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_estate_id_fkey"
+            columns: ["estate_id"]
+            isOneToOne: false
+            referencedRelation: "estates"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       estates: {
         Row: {
@@ -51,6 +60,7 @@ export interface Database {
           address?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       contractor_estates: {
         Row: {
@@ -65,6 +75,22 @@ export interface Database {
           contractor_id?: string
           estate_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_estates_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_estates_estate_id_fkey"
+            columns: ["estate_id"]
+            isOneToOne: false
+            referencedRelation: "estates"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       reviews: {
         Row: {
@@ -91,8 +117,35 @@ export interface Database {
           comment?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
-

@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 type Review = {
   id: string;
   rating: number;
-  comment: string;
+  comment: string | null;
   created_at: string;
 };
 
@@ -19,10 +19,14 @@ export default function ContractorDashboard() {
     if (!session) return;
 
     async function loadReviews() {
+        // session is guaranteed to be defined here because of the check above,
+        // but TS might need assurance inside the async closure.
+        if (!session?.user) return; 
+
         const { data } = await supabase
             .from('reviews')
             .select('*')
-            .eq('contractor_id', session?.user.id)
+            .eq('contractor_id', session.user.id)
             .order('created_at', { ascending: false });
         
         setReviews(data || []);
