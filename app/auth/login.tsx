@@ -51,6 +51,12 @@ export default function Login() {
           placeholder="Password"
           autoCapitalize={'none'}
         />
+
+        <View className="flex-row justify-end mb-6">
+          <Link href="/auth/forgot-password" className="text-blue-600 font-semibold">
+            Forgot Password?
+          </Link>
+        </View>
         
         <TouchableOpacity 
             className={`bg-blue-600 rounded-md p-3 ${loading ? 'opacity-50' : ''}`}
