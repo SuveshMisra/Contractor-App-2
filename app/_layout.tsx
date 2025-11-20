@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 
 function RootLayoutNav() {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, role } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -16,17 +16,21 @@ function RootLayoutNav() {
 
     if (!session && !inAuthGroup) {
       router.replace('/auth/login');
-    } else if (session && inAuthGroup) {
-      const role = session.user.user_metadata?.role;
+    } else if (session && role) {
+      // Redirect logic based on role from database
+      const isAtAdmin = segments[0] === 'admin';
+      const isAtContractor = segments[0] === '(contractor)';
+      const isAtResident = segments[0] === '(resident)';
+
       if (role === 'admin') {
-        router.replace('/admin');
+        if (!isAtAdmin) router.replace('/admin');
       } else if (role === 'contractor') {
-        router.replace('/(contractor)');
-      } else {
-        router.replace('/(resident)');
+        if (!isAtContractor) router.replace('/(contractor)');
+      } else if (role === 'resident') {
+        if (!isAtResident) router.replace('/(resident)');
       }
     }
-  }, [session, segments, isLoading]);
+  }, [session, role, segments, isLoading]);
 
   if (isLoading) {
       return (
