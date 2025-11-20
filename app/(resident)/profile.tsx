@@ -1,8 +1,11 @@
-import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../ctx';
 import { useRouter, Link } from 'expo-router';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 type Review = {
   id: string;
@@ -16,7 +19,7 @@ type Review = {
 
 type Profile = {
   full_name: string;
-  email: string; // Assuming email is available or we can fetch from auth user
+  email: string;
   estate?: {
     name: string;
   };
@@ -24,7 +27,6 @@ type Profile = {
 
 export default function ResidentProfile() {
   const { session, signOut } = useAuth();
-  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,6 @@ export default function ResidentProfile() {
 
         if (reviewsError) throw reviewsError;
         
-        // Transform data to match type if necessary (supabase join returns object/array)
         // @ts-ignore
         setReviews(reviewsData || []);
 
@@ -85,53 +86,58 @@ export default function ResidentProfile() {
 
   const handleSignOut = async () => {
     await signOut();
-    // router.replace('/'); // Auth context usually handles redirect
   };
 
   if (loading) {
-    return <View className="flex-1 justify-center items-center"><ActivityIndicator /></View>;
+    return <View className="flex-1 justify-center items-center bg-slate-50"><ActivityIndicator color="#2563eb" /></View>;
   }
 
   return (
-    <View className="flex-1 bg-gray-50 p-4">
-      <View className="bg-white p-6 rounded-lg shadow-sm mb-6">
-        <Text className="text-2xl font-bold text-gray-800 mb-2">{profile?.full_name}</Text>
-        <Text className="text-gray-600 mb-1">{profile?.email}</Text>
-        {profile?.estate?.name && (
-            <Text className="text-gray-500">Estate: {profile.estate.name}</Text>
-        )}
+    <ScreenLayout>
+        <Text className="text-2xl font-bold text-slate-900 mb-6">My Profile</Text>
         
-        <Link href="/change-password" asChild>
-            <TouchableOpacity className="mt-4 bg-gray-100 p-3 rounded-md items-center mb-2">
-                <Text className="text-blue-600 font-semibold">Change Password</Text>
-            </TouchableOpacity>
-        </Link>
-
-        <TouchableOpacity onPress={handleSignOut} className="bg-gray-200 p-3 rounded-md items-center">
-            <Text className="text-gray-700 font-semibold">Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text className="text-xl font-bold text-gray-800 mb-4">My Past Reviews</Text>
-
-      <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View className="bg-white p-4 rounded-lg mb-3 shadow-sm">
-            <View className="flex-row justify-between mb-2">
-                <Text className="font-semibold text-lg">{item.contractor?.full_name || 'Unknown Contractor'}</Text>
-                <Text className="font-bold text-yellow-600">★ {item.rating}</Text>
+        <Card className="mb-8">
+            <View className="mb-6">
+                <Text className="text-xl font-bold text-slate-800 mb-1">{profile?.full_name}</Text>
+                <Text className="text-slate-500 mb-1">{profile?.email}</Text>
+                {profile?.estate?.name && (
+                    <View className="bg-blue-50 self-start px-3 py-1 rounded-full mt-2">
+                        <Text className="text-blue-700 text-xs font-bold uppercase tracking-wide">{profile.estate.name}</Text>
+                    </View>
+                )}
             </View>
-            <Text className="text-gray-700 mb-2">{item.comment}</Text>
-            <Text className="text-gray-400 text-xs">{new Date(item.created_at).toLocaleDateString()}</Text>
-          </View>
-        )}
-        ListEmptyComponent={
-          <Text className="text-center text-gray-500 py-8">You haven't written any reviews yet.</Text>
-        }
-      />
-    </View>
+            
+            <View className="flex-row gap-3">
+                <Link href="/change-password" asChild>
+                    <Button title="Change Password" variant="outline" className="flex-1" />
+                </Link>
+                <Button title="Sign Out" variant="ghost" onPress={handleSignOut} className="flex-1" />
+            </View>
+        </Card>
+
+        <Text className="text-xl font-bold text-slate-900 mb-4">My Past Reviews</Text>
+
+        <FlatList
+            data={reviews}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+                <Card className="mb-4">
+                    <View className="flex-row justify-between items-center mb-2">
+                        <Text className="font-semibold text-lg text-slate-800">{item.contractor?.full_name || 'Unknown Contractor'}</Text>
+                        <View className="flex-row items-center bg-yellow-50 px-2 py-1 rounded border border-yellow-100">
+                            <Text className="text-yellow-500 text-xs mr-1">★</Text>
+                            <Text className="font-bold text-slate-900">{item.rating}</Text>
+                        </View>
+                    </View>
+                    <Text className="text-slate-600 leading-relaxed mb-3">{item.comment}</Text>
+                    <Text className="text-slate-400 text-xs">{new Date(item.created_at).toLocaleDateString()}</Text>
+                </Card>
+            )}
+            ListEmptyComponent={
+                <Text className="text-center text-slate-500 py-8 bg-slate-50 rounded-lg border border-slate-100 border-dashed">You haven't written any reviews yet.</Text>
+            }
+        />
+    </ScreenLayout>
   );
 }
-

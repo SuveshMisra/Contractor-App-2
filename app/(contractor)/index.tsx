@@ -3,6 +3,9 @@ import { Link } from 'expo-router';
 import { useAuth } from '../../ctx';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 type Review = {
   id: string;
@@ -20,8 +23,6 @@ export default function ContractorDashboard() {
     if (!session) return;
 
     async function loadReviews() {
-        // session is guaranteed to be defined here because of the check above,
-        // but TS might need assurance inside the async closure.
         if (!session?.user) return; 
 
         const { data } = await supabase
@@ -38,40 +39,46 @@ export default function ContractorDashboard() {
   }, [session]);
 
   return (
-    <View className="flex-1 p-4 bg-white">
-      <View className="flex-row justify-between items-center mb-6">
-         <Text className="text-2xl font-bold">My Reviews</Text>
+    <ScreenLayout>
+      <View className="flex-row justify-between items-start mb-6">
+         <View>
+            <Text className="text-3xl font-bold text-slate-900">My Reviews</Text>
+            <Text className="text-slate-500 mt-1">Feedback from residents.</Text>
+         </View>
          <View className="flex-row gap-2">
              <Link href="/change-password" asChild>
-                <TouchableOpacity className="bg-gray-100 px-3 py-2 rounded-lg">
-                    <Text className="text-blue-600 font-bold">Pwd</Text>
-                </TouchableOpacity>
+                <Button title="Pwd" variant="outline" className="px-3 h-10" />
              </Link>
-             <TouchableOpacity onPress={signOut} className="bg-red-100 px-3 py-2 rounded-lg">
-                <Text className="text-red-600 font-bold">Sign Out</Text>
-             </TouchableOpacity>
+             <Button title="Sign Out" variant="ghost" className="px-3 h-10" onPress={signOut} />
          </View>
       </View>
 
       {loading ? (
-          <ActivityIndicator />
+          <View className="py-10"><ActivityIndicator color="#2563eb" /></View>
       ) : (
           <FlatList
             data={reviews}
             keyExtractor={item => item.id}
+            scrollEnabled={false}
             renderItem={({ item }) => (
-                <View className="bg-gray-50 p-4 rounded-lg mb-3 border border-gray-100">
+                <Card className="mb-4 p-4">
                     <View className="flex-row justify-between mb-2">
-                        <Text className="font-bold text-yellow-600 text-lg">★ {item.rating}</Text>
-                        <Text className="text-gray-400 text-xs">{new Date(item.created_at).toLocaleDateString()}</Text>
+                        <View className="flex-row items-center">
+                            <Text className="font-bold text-yellow-500 text-lg mr-1">★</Text>
+                            <Text className="font-bold text-slate-900 text-lg">{item.rating}</Text>
+                        </View>
+                        <Text className="text-slate-400 text-xs">{new Date(item.created_at).toLocaleDateString()}</Text>
                     </View>
-                    <Text className="text-gray-700">{item.comment}</Text>
-                </View>
+                    {item.comment ? (
+                        <Text className="text-slate-700 leading-relaxed">{item.comment}</Text>
+                    ) : (
+                        <Text className="text-slate-400 italic">No comment provided.</Text>
+                    )}
+                </Card>
             )}
-            ListEmptyComponent={<Text className="text-gray-500 text-center mt-10">No reviews yet.</Text>}
+            ListEmptyComponent={<Text className="text-slate-500 text-center py-10 bg-slate-50 rounded-lg border border-slate-100 border-dashed">No reviews yet.</Text>}
           />
       )}
-    </View>
+    </ScreenLayout>
   );
 }
-

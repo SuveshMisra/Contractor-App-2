@@ -1,14 +1,17 @@
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { ScreenLayout } from '../../../components/ScreenLayout';
+import { Card } from '../../../components/Card';
+import { Button } from '../../../components/Button';
 
 type Review = {
   id: string;
   rating: number;
   comment: string;
   created_at: string;
-  resident_id: string; // Ideally fetch resident name too
+  resident_id: string;
 };
 
 type Contractor = {
@@ -50,11 +53,15 @@ export default function ContractorDetail() {
   }, [id]);
 
   if (loading) {
-    return <View className="flex-1 justify-center items-center"><ActivityIndicator /></View>;
+    return <View className="flex-1 justify-center items-center bg-slate-50"><ActivityIndicator color="#2563eb" /></View>;
   }
 
   if (!contractor) {
-    return <View className="flex-1 justify-center items-center"><Text>Contractor not found</Text></View>;
+    return (
+        <ScreenLayout className="justify-center items-center">
+            <Text className="text-slate-500">Contractor not found</Text>
+        </ScreenLayout>
+    );
   }
 
   const averageRating = reviews.length 
@@ -62,38 +69,38 @@ export default function ContractorDetail() {
     : 'N/A';
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 p-4">
-      <View className="bg-white p-6 rounded-lg shadow-sm mb-6">
-        <Text className="text-3xl font-bold text-gray-800 mb-2">{contractor.full_name}</Text>
+    <ScreenLayout>
+      <Card className="mb-8 p-6">
+        <Text className="text-3xl font-bold text-slate-900 mb-2">{contractor.full_name}</Text>
         <View className="flex-row items-center">
-             <Text className="text-yellow-500 text-xl font-bold mr-2">★ {averageRating}</Text>
-             <Text className="text-gray-500">({reviews.length} reviews)</Text>
+             <Text className="text-yellow-500 text-2xl font-bold mr-2">★ {averageRating}</Text>
+             <Text className="text-slate-500 text-lg">({reviews.length} reviews)</Text>
         </View>
-      </View>
+      </Card>
 
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-xl font-bold text-gray-800">Reviews</Text>
+      <View className="flex-row justify-between items-center mb-6">
+        <Text className="text-2xl font-bold text-slate-900">Reviews</Text>
         <Link href={`/(resident)/review/${id}`} asChild>
-            <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-md">
-                <Text className="text-white font-semibold">Write Review</Text>
-            </TouchableOpacity>
+            <Button title="Write Review" className="px-4" />
         </Link>
       </View>
 
       {reviews.map((review) => (
-        <View key={review.id} className="bg-white p-4 rounded-lg mb-3 shadow-sm">
+        <Card key={review.id} className="mb-4">
           <View className="flex-row justify-between mb-2">
-            <Text className="font-bold text-yellow-600">★ {review.rating}</Text>
-            <Text className="text-gray-400 text-xs">{new Date(review.created_at).toLocaleDateString()}</Text>
+            <View className="flex-row items-center bg-yellow-50 px-2 py-1 rounded border border-yellow-100">
+                <Text className="text-yellow-500 text-xs mr-1">★</Text>
+                <Text className="font-bold text-slate-900">{review.rating}</Text>
+            </View>
+            <Text className="text-slate-400 text-xs">{new Date(review.created_at).toLocaleDateString()}</Text>
           </View>
-          <Text className="text-gray-700">{review.comment}</Text>
-        </View>
+          <Text className="text-slate-700 leading-relaxed">{review.comment}</Text>
+        </Card>
       ))}
       
       {reviews.length === 0 && (
-        <Text className="text-center text-gray-500 py-8">No reviews yet. Be the first!</Text>
+        <Text className="text-center text-slate-500 py-10 bg-slate-50 rounded-lg border border-slate-100 border-dashed">No reviews yet. Be the first!</Text>
       )}
-    </ScrollView>
+    </ScreenLayout>
   );
 }
-

@@ -1,36 +1,50 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { useAuth } from '../../ctx';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 export default function AdminDashboard() {
   const { signOut } = useAuth();
   
+  const menuItems = [
+      { title: 'Manage Users', href: '/admin/users', description: 'View and edit user roles and assignments' },
+      { title: 'Manage Estates', href: '/admin/estates', description: 'Add or remove estates' },
+      { title: 'Change Password', href: '/change-password', description: 'Update your login password' },
+  ];
+
   return (
-    <View className="flex-1 p-4 bg-white">
-      <Text className="text-2xl font-bold mb-6">Admin Dashboard</Text>
+    <ScreenLayout>
+      <View className="mb-6">
+        <Text className="text-3xl font-bold text-slate-900">Admin Dashboard</Text>
+        <Text className="text-slate-500 mt-1">Welcome back, Admin.</Text>
+      </View>
       
-      <Link href="/admin/users" asChild>
-        <TouchableOpacity className="bg-gray-100 p-4 rounded-lg mb-4">
-          <Text className="text-lg font-semibold">Manage Users</Text>
-        </TouchableOpacity>
-      </Link>
+      <View className="gap-4">
+        {menuItems.map((item) => (
+            <Link key={item.href} href={item.href as any} asChild>
+                <TouchableOpacity>
+                    <Card className="flex-row items-center justify-between active:bg-slate-50">
+                        <View>
+                            <Text className="text-lg font-semibold text-slate-800">{item.title}</Text>
+                            <Text className="text-slate-500 text-sm mt-1">{item.description}</Text>
+                        </View>
+                        <Text className="text-slate-400 text-xl">›</Text>
+                    </Card>
+                </TouchableOpacity>
+            </Link>
+        ))}
+      </View>
 
-      <Link href="/admin/estates" asChild>
-        <TouchableOpacity className="bg-gray-100 p-4 rounded-lg mb-4">
-          <Text className="text-lg font-semibold">Manage Estates</Text>
-        </TouchableOpacity>
-      </Link>
-
-      <Link href="/change-password" asChild>
-        <TouchableOpacity className="bg-gray-100 p-4 rounded-lg mb-4">
-          <Text className="text-lg font-semibold">Change Password</Text>
-        </TouchableOpacity>
-      </Link>
-
-      <TouchableOpacity onPress={signOut} className="bg-red-500 p-4 rounded-lg mt-auto">
-        <Text className="text-white text-center font-bold">Sign Out</Text>
-      </TouchableOpacity>
-    </View>
+      <View className="mt-8 border-t border-slate-200 pt-6">
+        <Button 
+            title="Sign Out" 
+            onPress={signOut} 
+            variant="danger"
+            className="w-full sm:w-auto self-start"
+        />
+      </View>
+    </ScreenLayout>
   );
 }
-

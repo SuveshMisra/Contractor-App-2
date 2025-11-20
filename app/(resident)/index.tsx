@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../ctx';
 import { Link } from 'expo-router';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 type Contractor = {
   id: string;
@@ -11,7 +14,7 @@ type Contractor = {
 };
 
 export default function ResidentHome() {
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [loading, setLoading] = useState(true);
   const [estateName, setEstateName] = useState<string>('');
@@ -74,41 +77,42 @@ export default function ResidentHome() {
   }, [session]);
 
   if (loading) {
-    return <View className="flex-1 justify-center items-center"><ActivityIndicator /></View>;
+    return <View className="flex-1 justify-center items-center bg-slate-50"><ActivityIndicator color="#2563eb" /></View>;
   }
 
   return (
-    <View className="flex-1 p-4 bg-gray-50">
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-2xl font-bold text-gray-800">Contractors</Text>
+    <ScreenLayout>
+      <View className="flex-row justify-between items-start mb-6">
+        <View>
+            <Text className="text-3xl font-bold text-slate-900">Contractors</Text>
+            {estateName ? <Text className="text-slate-500 mt-1">Estate: <Text className="font-semibold text-slate-700">{estateName}</Text></Text> : null}
+        </View>
         <Link href="/(resident)/profile" asChild>
-          <TouchableOpacity className="bg-blue-100 p-2 rounded-md">
-              <Text className="text-blue-700 text-xs font-bold">My Profile</Text>
-          </TouchableOpacity>
+            <Button title="My Profile" variant="outline" className="px-3 h-10" />
         </Link>
       </View>
       
-      {estateName ? <Text className="mb-4 text-gray-600">Estate: {estateName}</Text> : null}
-
       <FlatList
         data={contractors}
         keyExtractor={(item) => item.id}
+        scrollEnabled={false}
         renderItem={({ item }) => (
           <Link href={`/(resident)/contractor/${item.id}`} asChild>
-            <TouchableOpacity className="bg-white p-4 rounded-lg mb-3 shadow-sm flex-row justify-between items-center">
-              <View>
-                <Text className="text-lg font-semibold">{item.full_name}</Text>
-                <Text className="text-gray-500 capitalize">{item.role}</Text>
-              </View>
-              <Text className="text-blue-500">View Profile</Text>
+            <TouchableOpacity>
+                <Card className="mb-3 p-4 flex-row justify-between items-center active:bg-slate-50">
+                    <View>
+                        <Text className="text-lg font-semibold text-slate-900">{item.full_name}</Text>
+                        <Text className="text-slate-500 capitalize text-sm">{item.role}</Text>
+                    </View>
+                    <Text className="text-blue-600 font-medium">View Profile ›</Text>
+                </Card>
             </TouchableOpacity>
           </Link>
         )}
         ListEmptyComponent={
-          <Text className="text-center text-gray-500 mt-10">No contractors found for your estate.</Text>
+          <Text className="text-center text-slate-500 py-10 bg-slate-50 rounded-lg border border-slate-100 border-dashed">No contractors found for your estate.</Text>
         }
       />
-    </View>
+    </ScreenLayout>
   );
 }
-

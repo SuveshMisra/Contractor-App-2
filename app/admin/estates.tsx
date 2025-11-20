@@ -1,58 +1,80 @@
-import { View, Text, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
 
 type Estate = Database['public']['Tables']['estates']['Row'];
 
 export default function ManageEstates() {
   const [estates, setEstates] = useState<Estate[]>([]);
   const [newEstateName, setNewEstateName] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchEstates();
   }, []);
 
   async function fetchEstates() {
-    const { data } = await supabase.from('estates').select('*');
+    const { data } = await supabase.from('estates').select('*').order('name');
     if (data) setEstates(data);
   }
 
   async function addEstate() {
-    if (!newEstateName) return;
-    const { error } = await supabase.from('estates').insert({ name: newEstateName });
-    if (error) Alert.alert(error.message);
-    else {
+    if (!newEstateName.trim()) return;
+    setLoading(true);
+    const { error } = await supabase.from('estates').insert({ name: newEstateName.trim() });
+    if (error) {
+        Alert.alert('Error', error.message);
+    } else {
         setNewEstateName('');
         fetchEstates();
     }
+    setLoading(false);
   }
 
   return (
-    <View className="flex-1 bg-white p-4">
-      <View className="flex-row mb-4">
-          <TextInput 
-            className="flex-1 border border-gray-300 rounded-l-md p-2"
-            placeholder="New Estate Name"
-            value={newEstateName}
-            onChangeText={setNewEstateName}
-          />
-          <TouchableOpacity onPress={addEstate} className="bg-green-600 p-2 rounded-r-md justify-center">
-              <Text className="text-white font-bold">Add</Text>
-          </TouchableOpacity>
+    <ScreenLayout>
+      <View className="mb-6">
+          <Text className="text-2xl font-bold text-slate-800">Manage Estates</Text>
+          <Text className="text-slate-500">Add and view estates in the system.</Text>
       </View>
 
+      <Card className="mb-8">
+          <Text className="font-semibold text-slate-700 mb-4">Add New Estate</Text>
+          <View className="flex-col sm:flex-row gap-3">
+              <View className="flex-1">
+                <Input 
+                    containerClassName="mb-0"
+                    placeholder="Enter estate name..."
+                    value={newEstateName}
+                    onChangeText={setNewEstateName}
+                />
+              </View>
+              <Button 
+                title="Add Estate" 
+                onPress={addEstate} 
+                loading={loading}
+                className="sm:w-auto"
+              />
+          </View>
+      </Card>
+
+      <Text className="text-lg font-semibold text-slate-800 mb-3">Existing Estates</Text>
       <FlatList
         data={estates}
         keyExtractor={(item) => item.id}
+        scrollEnabled={false}
         renderItem={({ item }) => (
-          <View className="p-4 border-b border-gray-200">
-            <Text className="font-bold">{item.name}</Text>
-          </View>
+          <Card className="mb-3 p-4 flex-row justify-between items-center" variant="flat">
+            <Text className="font-medium text-slate-900 text-lg">{item.name}</Text>
+          </Card>
         )}
-        ListEmptyComponent={<Text className="text-center text-gray-500">No estates found.</Text>}
+        ListEmptyComponent={<Text className="text-center text-slate-500 py-8 bg-slate-50 rounded-lg border border-slate-100 border-dashed">No estates found.</Text>}
       />
-    </View>
+    </ScreenLayout>
   );
 }
-

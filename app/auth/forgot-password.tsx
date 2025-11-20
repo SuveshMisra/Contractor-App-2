@@ -1,7 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link } from 'expo-router';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -31,48 +35,47 @@ export default function ForgotPassword() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center bg-gray-100 p-4">
-      <View className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
-        <Text className="text-2xl font-bold mb-6 text-center text-gray-800">Reset Password</Text>
+    <ScreenLayout className="justify-center items-center">
+      <Card className="w-full max-w-sm">
+        <Text className="text-2xl font-bold mb-6 text-center text-slate-800">Reset Password</Text>
         
         {errorMessage ? (
-          <View className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <Text className="text-red-700">{errorMessage}</Text>
+          <View className="bg-red-50 border border-red-200 px-4 py-3 rounded-lg mb-6">
+            <Text className="text-red-700 text-sm">{errorMessage}</Text>
           </View>
         ) : null}
 
         {successMessage ? (
-          <View className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-            <Text className="text-green-700">{successMessage}</Text>
+          <View className="bg-green-50 border border-green-200 px-4 py-3 rounded-lg mb-6">
+            <Text className="text-green-700 text-sm">{successMessage}</Text>
           </View>
         ) : null}
 
-        <Text className="text-gray-600 mb-4 text-center">
+        <Text className="text-slate-600 mb-6 text-center">
             Enter your email address and we'll send you a link to reset your password.
         </Text>
 
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-6 bg-white"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
+        <Input
           placeholder="email@address.com"
-          autoCapitalize={'none'}
+          value={email}
+          onChangeText={setEmail}
           keyboardType="email-address"
+          autoCapitalize="none"
         />
         
-        <TouchableOpacity 
-            className={`bg-blue-600 rounded-md p-3 ${loading ? 'opacity-50' : ''}`}
-            disabled={loading} 
+        <Button 
+            title="Send Reset Link"
             onPress={resetPassword}
-        >
-          <Text className="text-white text-center font-semibold text-lg">Send Reset Link</Text>
-        </TouchableOpacity>
+            loading={loading}
+            className="mb-4"
+        />
 
-        <View className="mt-4 flex-row justify-center">
-            <Link href="/auth/login" className="text-blue-600 font-semibold">Back to Sign In</Link>
+        <View className="flex-row justify-center">
+            <Link href="/auth/login" asChild>
+              <Text className="text-blue-600 font-semibold">Back to Sign In</Text>
+            </Link>
         </View>
-      </View>
-    </View>
+      </Card>
+    </ScreenLayout>
   );
 }
-

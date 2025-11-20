@@ -1,13 +1,18 @@
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const router = useRouter();
 
   async function signInWithEmail() {
     setLoading(true);
@@ -19,59 +24,59 @@ export default function Login() {
 
     if (error) {
       setErrorMessage(error.message);
-      // Also log for debugging purposes
       console.error('Login error:', error); 
     }
     setLoading(false);
   }
 
   return (
-    <View className="flex-1 justify-center items-center bg-gray-100 p-4">
-      <View className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
-        <Text className="text-2xl font-bold mb-6 text-center text-gray-800">Welcome Back</Text>
+    <ScreenLayout className="justify-center items-center">
+      <Card className="w-full max-w-sm">
+        <Text className="text-2xl font-bold mb-6 text-center text-slate-800">Welcome Back</Text>
         
         {errorMessage ? (
-          <View className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <Text className="text-red-700">{errorMessage}</Text>
+          <View className="bg-red-50 border border-red-200 px-4 py-3 rounded-lg mb-6">
+            <Text className="text-red-700 text-sm">{errorMessage}</Text>
           </View>
         ) : null}
 
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-4 bg-white"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
+        <Input
+          label="Email Address"
           placeholder="email@address.com"
-          autoCapitalize={'none'}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-6 bg-white"
-          onChangeText={(text) => setPassword(text)}
+
+        <Input
+          label="Password"
+          placeholder="Enter your password"
           value={password}
-          secureTextEntry={true}
-          placeholder="Password"
-          autoCapitalize={'none'}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
         />
 
         <View className="flex-row justify-end mb-6">
-          <Link href="/auth/forgot-password" className="text-blue-600 font-semibold">
-            Forgot Password?
+          <Link href="/auth/forgot-password" asChild>
+            <Text className="text-blue-600 font-semibold text-sm">Forgot Password?</Text>
           </Link>
         </View>
         
-        <TouchableOpacity 
-            className={`bg-blue-600 rounded-md p-3 ${loading ? 'opacity-50' : ''}`}
-            disabled={loading} 
-            onPress={signInWithEmail}
-        >
-          <Text className="text-white text-center font-semibold text-lg">Sign In</Text>
-        </TouchableOpacity>
+        <Button 
+          title="Sign In"
+          onPress={signInWithEmail}
+          loading={loading}
+        />
 
-        <View className="mt-4 flex-row justify-center">
-            <Text className="text-gray-600">Don't have an account? </Text>
-            <Link href="/auth/register" className="text-blue-600 font-semibold">Sign Up</Link>
+        <View className="mt-6 flex-row justify-center items-center space-x-1">
+            <Text className="text-slate-600">Don't have an account?</Text>
+            <Link href="/auth/register" asChild>
+              <Text className="text-blue-600 font-semibold">Sign Up</Text>
+            </Link>
         </View>
-      </View>
-    </View>
+      </Card>
+    </ScreenLayout>
   );
 }
-

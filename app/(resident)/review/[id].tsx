@@ -1,8 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../ctx';
+import { ScreenLayout } from '../../../components/ScreenLayout';
+import { Card } from '../../../components/Card';
+import { Button } from '../../../components/Button';
 
 export default function WriteReview() {
   const { id } = useLocalSearchParams(); // contractor_id
@@ -42,42 +45,46 @@ export default function WriteReview() {
   }
 
   return (
-    <View className="flex-1 p-6 bg-white">
-      <Text className="text-2xl font-bold mb-6">Write a Review</Text>
+    <ScreenLayout className="justify-center items-center">
+      <Card className="w-full max-w-lg">
+        <Text className="text-2xl font-bold mb-6 text-slate-800">Write a Review</Text>
 
-      <Text className="text-lg font-semibold mb-2">Rating</Text>
-      <View className="flex-row mb-6">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity key={star} onPress={() => setRating(star)} className="mr-2">
-            <Text className={`text-3xl ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}>
-              ★
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text className="text-sm font-medium text-slate-700 mb-2">Rating</Text>
+        <View className="flex-row mb-6 bg-slate-50 p-3 rounded-lg justify-center border border-slate-100">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <TouchableOpacity key={star} onPress={() => setRating(star)} className="mx-2">
+              <Text className={`text-4xl ${star <= rating ? 'text-yellow-400' : 'text-slate-200'}`}>
+                ★
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Text className="text-lg font-semibold mb-2">Comment</Text>
-      <TextInput
-        className="border border-gray-300 rounded-lg p-3 h-32 bg-gray-50 text-top"
-        multiline
-        placeholder="Describe your experience..."
-        value={comment}
-        onChangeText={setComment}
-        textAlignVertical="top"
-      />
+        <Text className="text-sm font-medium text-slate-700 mb-2">Comment</Text>
+        <TextInput
+          className="w-full px-3 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 mb-6 h-32 text-top"
+          multiline
+          placeholder="Describe your experience..."
+          placeholderTextColor="#94a3b8"
+          value={comment}
+          onChangeText={setComment}
+          textAlignVertical="top"
+        />
 
-      <TouchableOpacity 
-        className={`bg-blue-600 p-4 rounded-lg mt-6 ${submitting ? 'opacity-50' : ''}`}
-        onPress={submitReview}
-        disabled={submitting}
-      >
-        {submitting ? (
-            <ActivityIndicator color="white" />
-        ) : (
-            <Text className="text-white text-center font-bold text-lg">Submit Review</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+        <Button 
+            title="Submit Review"
+            onPress={submitReview}
+            loading={submitting}
+        />
+        
+        <Button 
+            title="Cancel"
+            variant="ghost"
+            onPress={() => router.back()}
+            disabled={submitting}
+            className="mt-2"
+        />
+      </Card>
+    </ScreenLayout>
   );
 }
-

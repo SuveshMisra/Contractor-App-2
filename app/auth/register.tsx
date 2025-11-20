@@ -1,7 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Modal, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link, useRouter } from 'expo-router';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -52,13 +56,8 @@ export default function Register() {
     });
 
     if (error) {
-        console.error('Signup Error Details:', {
-            message: error.message,
-            name: error.name,
-            status: error.status,
-            stack: error.stack
-        });
-        Alert.alert('Signup Failed', `Error: ${error.message}\nPlease check console for details.`);
+        console.error('Signup Error:', error);
+        Alert.alert('Signup Failed', error.message);
     } else {
         if (!session) Alert.alert('Please check your inbox for email verification!');
     }
@@ -67,96 +66,121 @@ export default function Register() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}} className="bg-gray-100 p-4">
-      <View className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm mx-auto">
-        <Text className="text-2xl font-bold mb-6 text-center text-gray-800">Create Account</Text>
+    <ScreenLayout className="justify-center items-center">
+      <Card className="w-full max-w-sm">
+        <Text className="text-2xl font-bold mb-6 text-center text-slate-800">Create Account</Text>
         
-        <View className="flex-row mb-4 bg-gray-200 rounded-md p-1">
+        <View className="flex-row mb-6 bg-slate-100 p-1 rounded-lg">
             <TouchableOpacity 
-                className={`flex-1 p-2 rounded-sm ${role === 'resident' ? 'bg-white shadow-sm' : ''}`}
+                className={`flex-1 py-2 px-3 rounded-md ${role === 'resident' ? 'bg-white shadow-sm' : ''}`}
                 onPress={() => setRole('resident')}
             >
-                <Text className={`text-center font-semibold ${role === 'resident' ? 'text-blue-600' : 'text-gray-500'}`}>Resident</Text>
+                <Text className={`text-center font-medium ${role === 'resident' ? 'text-slate-900' : 'text-slate-500'}`}>Resident</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-                className={`flex-1 p-2 rounded-sm ${role === 'contractor' ? 'bg-white shadow-sm' : ''}`}
+                className={`flex-1 py-2 px-3 rounded-md ${role === 'contractor' ? 'bg-white shadow-sm' : ''}`}
                 onPress={() => setRole('contractor')}
             >
-                <Text className={`text-center font-semibold ${role === 'contractor' ? 'text-blue-600' : 'text-gray-500'}`}>Contractor</Text>
+                <Text className={`text-center font-medium ${role === 'contractor' ? 'text-slate-900' : 'text-slate-500'}`}>Contractor</Text>
             </TouchableOpacity>
         </View>
 
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-4 bg-white"
-          onChangeText={(text) => setFullName(text)}
-          value={fullName}
+        <Input
+          label="Full Name"
           placeholder="Full Name"
+          value={fullName}
+          onChangeText={setFullName}
         />
 
         {role === 'resident' && (
-            <TouchableOpacity 
-                onPress={() => setShowEstateModal(true)}
-                className="border border-gray-300 rounded-md p-3 mb-4 bg-white flex-row justify-between"
-            >
-                <Text className={estateId ? 'text-black' : 'text-gray-400'}>
-                    {estateId ? estates.find(e => e.id === estateId)?.name : 'Select Estate'}
-                </Text>
-                <Text>▼</Text>
-            </TouchableOpacity>
-        )}
-
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-4 bg-white"
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          placeholder="email@address.com"
-          autoCapitalize={'none'}
-        />
-        <TextInput
-          className="border border-gray-300 rounded-md p-3 mb-6 bg-white"
-          onChangeText={(text) => setPassword(text)}
-          value={password}
-          secureTextEntry={true}
-          placeholder="Password"
-          autoCapitalize={'none'}
-        />
-        
-        <TouchableOpacity 
-            className={`bg-blue-600 rounded-md p-3 ${loading ? 'opacity-50' : ''}`}
-            disabled={loading} 
-            onPress={signUpWithEmail}
-        >
-          <Text className="text-white text-center font-semibold text-lg">Sign Up</Text>
-        </TouchableOpacity>
-
-        <View className="mt-4 flex-row justify-center">
-            <Text className="text-gray-600">Already have an account? </Text>
-            <Link href="/auth/login" className="text-blue-600 font-semibold">Sign In</Link>
-        </View>
-
-        <Modal visible={showEstateModal} animationType="slide">
-            <View className="flex-1 p-4 mt-10 bg-white">
-                <Text className="text-xl font-bold mb-4">Select Your Estate</Text>
-                <FlatList 
-                    data={estates}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity 
-                            className="p-4 border-b border-gray-100"
-                            onPress={() => { setEstateId(item.id); setShowEstateModal(false); }}
-                        >
-                            <Text className="text-lg">{item.name}</Text>
-                        </TouchableOpacity>
-                    )}
-                    ListEmptyComponent={<Text className="text-center text-gray-500 mt-4">No estates found. Ask admin to create one.</Text>}
-                />
-                <TouchableOpacity onPress={() => setShowEstateModal(false)} className="p-4 bg-gray-200 rounded-md mt-4">
-                    <Text className="text-center font-semibold">Cancel</Text>
+            <View className="mb-4">
+                <Text className="text-sm font-medium text-slate-700 mb-1.5">Estate</Text>
+                <TouchableOpacity 
+                    onPress={() => setShowEstateModal(true)}
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg flex-row justify-between items-center"
+                >
+                    <Text className={estateId ? 'text-slate-900' : 'text-slate-400'}>
+                        {estateId ? estates.find(e => e.id === estateId)?.name : 'Select Estate'}
+                    </Text>
+                    <Text className="text-slate-400">▼</Text>
                 </TouchableOpacity>
             </View>
+        )}
+
+        <Input
+          label="Email"
+          placeholder="email@address.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+
+        <Input
+          label="Password"
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
+        />
+        
+        <Button 
+            title="Sign Up"
+            onPress={signUpWithEmail}
+            loading={loading}
+            className="mt-2"
+        />
+
+        <View className="mt-6 flex-row justify-center items-center space-x-1">
+            <Text className="text-slate-600">Already have an account?</Text>
+            <Link href="/auth/login" asChild>
+              <Text className="text-blue-600 font-semibold">Sign In</Text>
+            </Link>
+        </View>
+
+        <Modal 
+            visible={showEstateModal} 
+            animationType="fade" 
+            transparent={true}
+            onRequestClose={() => setShowEstateModal(false)}
+        >
+            <View className="flex-1 bg-black/50 justify-center items-center p-4">
+                <Card className="w-full max-w-sm bg-white max-h-[80%]">
+                    <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 pb-4">
+                        <Text className="text-lg font-bold text-slate-800">Select Estate</Text>
+                        <TouchableOpacity onPress={() => setShowEstateModal(false)} className="p-1">
+                            <Text className="text-slate-400 font-bold text-lg">✕</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <FlatList 
+                        data={estates}
+                        keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity 
+                                className={`p-4 border-b border-slate-50 ${estateId === item.id ? 'bg-blue-50' : ''}`}
+                                onPress={() => { setEstateId(item.id); setShowEstateModal(false); }}
+                            >
+                                <Text className={`text-base ${estateId === item.id ? 'font-semibold text-blue-700' : 'text-slate-700'}`}>
+                                    {item.name}
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                        ListEmptyComponent={<Text className="text-center text-slate-500 py-4">No estates found.</Text>}
+                    />
+                    
+                    <Button 
+                        title="Cancel" 
+                        variant="ghost" 
+                        onPress={() => setShowEstateModal(false)} 
+                        className="mt-4"
+                    />
+                </Card>
+            </View>
         </Modal>
-      </View>
-    </ScrollView>
+      </Card>
+    </ScreenLayout>
   );
 }
-

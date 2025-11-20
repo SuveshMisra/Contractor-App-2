@@ -2,6 +2,9 @@ import { View, Text, FlatList, TouchableOpacity, Alert, Modal, ScrollView } from
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../types/database';
+import { ScreenLayout } from '../../components/ScreenLayout';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Estate = Database['public']['Tables']['estates']['Row'];
@@ -126,113 +129,127 @@ export default function ManageUsers() {
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            className="p-4 border-b border-gray-200 flex-row justify-between items-center"
-            onPress={() => openUserModal(item)}
-          >
-            <View>
-              <Text className="font-bold">{item.full_name || 'No Name'}</Text>
-              <Text className="text-gray-500 capitalize">{item.role}</Text>
-              {item.role === 'resident' && item.estate_id && (
-                  <Text className="text-gray-400 text-xs">
-                      {estates.find(e => e.id === item.estate_id)?.name || 'Unknown Estate'}
-                  </Text>
-              )}
-            </View>
-            
-            <Text className="text-blue-500">Edit</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<Text className="p-4 text-center text-gray-500">No users found.</Text>}
-      />
+    <ScreenLayout scroll={false}>
+      <View className="flex-1">
+        <View className="mb-4 mt-2">
+           <Text className="text-2xl font-bold text-slate-800">Manage Users</Text>
+        </View>
 
-      <Modal visible={!!selectedUser} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-white p-4 mt-4">
-            <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-2xl font-bold">Edit User</Text>
-                <TouchableOpacity onPress={() => setSelectedUser(null)} className="p-2">
-                    <Text className="text-blue-600 font-bold text-lg">Done</Text>
-                </TouchableOpacity>
-            </View>
-
-            {selectedUser && (
-                <ScrollView>
-                    <View className="mb-6">
-                        <Text className="text-gray-500 mb-1">Name</Text>
-                        <Text className="text-xl font-semibold">{selectedUser.full_name || 'No Name'}</Text>
-                    </View>
-
-                    <View className="mb-6">
-                        <Text className="text-gray-500 mb-1">Role</Text>
-                        <Text className="text-xl capitalize">{selectedUser.role}</Text>
-                    </View>
-
-                    {selectedUser.role === 'resident' && (
-                        <View className="mb-6">
-                            <Text className="text-lg font-bold mb-2">Assigned Estate</Text>
-                            {estates.map(estate => (
-                                <TouchableOpacity 
-                                    key={estate.id}
-                                    className={`p-3 mb-2 rounded-md flex-row justify-between items-center ${selectedUser.estate_id === estate.id ? 'bg-blue-100 border border-blue-300' : 'bg-gray-50'}`}
-                                    onPress={() => updateResidentEstate(estate.id)}
-                                >
-                                    <Text className={selectedUser.estate_id === estate.id ? 'font-bold text-blue-800' : 'text-gray-800'}>
-                                        {estate.name}
-                                    </Text>
-                                    {selectedUser.estate_id === estate.id && <Text className="text-blue-600">✓</Text>}
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-
-                    {selectedUser.role === 'contractor' && (
-                        <View className="mb-6">
-                            <Text className="text-lg font-bold mb-2">Assigned Estates</Text>
-                            <Text className="text-gray-500 mb-2 text-sm">Tap to toggle access</Text>
-                            {estates.map(estate => {
-                                const isAssigned = userContractorEstates.includes(estate.id);
-                                return (
-                                    <TouchableOpacity 
-                                        key={estate.id}
-                                        className={`p-3 mb-2 rounded-md flex-row justify-between items-center ${isAssigned ? 'bg-blue-100 border border-blue-300' : 'bg-gray-50'}`}
-                                        onPress={() => toggleContractorEstate(estate.id)}
-                                    >
-                                        <Text className={isAssigned ? 'font-bold text-blue-800' : 'text-gray-800'}>
-                                            {estate.name}
-                                        </Text>
-                                        {isAssigned && <Text className="text-blue-600">✓</Text>}
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-                    )}
-
-                    <View className="mt-4 border-t border-gray-200 pt-4">
-                        {selectedUser.role !== 'admin' && (
-                            <TouchableOpacity 
-                                className="bg-blue-600 p-3 rounded-md mb-3"
-                                onPress={() => promoteToAdmin(selectedUser.id)}
-                            >
-                                <Text className="text-white text-center font-bold">Promote to Admin</Text>
-                            </TouchableOpacity>
-                        )}
-                        
-                        <TouchableOpacity 
-                            className="bg-red-100 p-3 rounded-md border border-red-200"
-                            onPress={() => deleteUser(selectedUser.id)}
-                        >
-                            <Text className="text-red-600 text-center font-bold">Delete User</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
+        <FlatList
+            data={users}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            renderItem={({ item }) => (
+            <Card 
+                className="mb-3 flex-row justify-between items-center"
+                onPress={() => openUserModal(item)}
+            >
+                <View className="flex-1 mr-4">
+                <Text className="font-bold text-slate-900 text-lg">{item.full_name || 'No Name'}</Text>
+                <Text className="text-slate-500 capitalize">{item.role}</Text>
+                {item.role === 'resident' && item.estate_id && (
+                    <Text className="text-slate-400 text-xs mt-1">
+                        {estates.find(e => e.id === item.estate_id)?.name || 'Unknown Estate'}
+                    </Text>
+                )}
+                </View>
+                
+                <Text className="text-blue-600 font-medium">Edit</Text>
+            </Card>
             )}
+            ListEmptyComponent={<Text className="p-8 text-center text-slate-500">No users found.</Text>}
+        />
+      </View>
+
+      <Modal 
+        visible={!!selectedUser} 
+        animationType="fade" 
+        transparent={true}
+        onRequestClose={() => setSelectedUser(null)}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+            <Card className="w-full max-w-lg max-h-[90%] bg-white flex-shrink-0">
+                <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 pb-4">
+                    <Text className="text-xl font-bold text-slate-800">Edit User</Text>
+                    <TouchableOpacity onPress={() => setSelectedUser(null)} className="p-2 rounded-full hover:bg-slate-100">
+                        <Text className="text-slate-400 text-xl font-bold">✕</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView className="flex-shrink-0 mb-4" showsVerticalScrollIndicator={false}>
+                    {selectedUser && (
+                        <View>
+                            <View className="mb-6">
+                                <Text className="text-sm text-slate-500 uppercase tracking-wider mb-1">Name</Text>
+                                <Text className="text-xl font-semibold text-slate-900">{selectedUser.full_name || 'No Name'}</Text>
+                            </View>
+
+                            <View className="mb-6">
+                                <Text className="text-sm text-slate-500 uppercase tracking-wider mb-1">Role</Text>
+                                <Text className="text-xl capitalize text-slate-900">{selectedUser.role}</Text>
+                            </View>
+
+                            {selectedUser.role === 'resident' && (
+                                <View className="mb-6">
+                                    <Text className="text-lg font-bold mb-3 text-slate-800">Assigned Estate</Text>
+                                    {estates.map(estate => (
+                                        <TouchableOpacity 
+                                            key={estate.id}
+                                            className={`p-3 mb-2 rounded-lg flex-row justify-between items-center border ${selectedUser.estate_id === estate.id ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}
+                                            onPress={() => updateResidentEstate(estate.id)}
+                                        >
+                                            <Text className={selectedUser.estate_id === estate.id ? 'font-semibold text-blue-700' : 'text-slate-700'}>
+                                                {estate.name}
+                                            </Text>
+                                            {selectedUser.estate_id === estate.id && <Text className="text-blue-600 font-bold">✓</Text>}
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+
+                            {selectedUser.role === 'contractor' && (
+                                <View className="mb-6">
+                                    <Text className="text-lg font-bold mb-1 text-slate-800">Assigned Estates</Text>
+                                    <Text className="text-slate-500 mb-3 text-sm">Tap to toggle access</Text>
+                                    {estates.map(estate => {
+                                        const isAssigned = userContractorEstates.includes(estate.id);
+                                        return (
+                                            <TouchableOpacity 
+                                                key={estate.id}
+                                                className={`p-3 mb-2 rounded-lg flex-row justify-between items-center border ${isAssigned ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'}`}
+                                                onPress={() => toggleContractorEstate(estate.id)}
+                                            >
+                                                <Text className={isAssigned ? 'font-semibold text-blue-700' : 'text-slate-700'}>
+                                                    {estate.name}
+                                                </Text>
+                                                {isAssigned && <Text className="text-blue-600 font-bold">✓</Text>}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            )}
+
+                            <View className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                                {selectedUser.role !== 'admin' && (
+                                    <Button 
+                                        title="Promote to Admin"
+                                        onPress={() => promoteToAdmin(selectedUser.id)}
+                                    />
+                                )}
+                                
+                                <Button 
+                                    title="Delete User"
+                                    variant="danger"
+                                    onPress={() => deleteUser(selectedUser.id)}
+                                />
+                            </View>
+                        </View>
+                    )}
+                </ScrollView>
+            </Card>
         </View>
       </Modal>
-    </View>
+    </ScreenLayout>
   );
 }
