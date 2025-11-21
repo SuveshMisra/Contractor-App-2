@@ -81,71 +81,104 @@ export default function SearchProviders() {
     async function handleVote(supplierId: string, direction: 'up' | 'down') {
         if (!session?.user) return;
 
+        const supplierIndex = results.findIndex(s => s.id === supplierId);
+        if (supplierIndex === -1) return;
+
+        const s = results[supplierIndex];
+        const currentVote = s.user_vote;
+        let newUpvotes = s.upvotes;
+        let newDownvotes = s.downvotes;
+        let newVote = direction;
+
+        // Calculate new state locally
+        if (currentVote === direction) {
+            // Toggle off
+            newVote = null as any;
+            if (direction === 'up') newUpvotes--;
+            else newDownvotes--;
+        } else {
+            // Change vote or new vote
+            if (currentVote) {
+                // Remove old vote effect
+                if (currentVote === 'up') newUpvotes--;
+                else newDownvotes--;
+            }
+            
+            // Add new vote effect
+            if (direction === 'up') newUpvotes++;
+            else newDownvotes++;
+        }
+
+        // Optimistic update
+        const newResults = [...results];
+        newResults[supplierIndex] = {
+            ...s,
+            upvotes: newUpvotes,
+            downvotes: newDownvotes,
+            user_vote: newVote as 'up' | 'down' | null
+        };
+        setResults(newResults);
+
+        // Perform DB updates
         try {
-            // Optimistic update
-            setResults(prev => prev.map(s => {
-                if (s.id !== supplierId) return s;
+            console.log('Starting vote update for:', supplierId, 'direction:', direction);
+            console.log('Current vote state:', currentVote);
+
+            if (currentVote === direction) {
+                console.log('Removing vote...');
+                // Remove vote
+                const { error: deleteError } = await supabase.from('supplier_votes').delete()
+                    .match({ supplier_id: supplierId, user_id: session.user.id });
                 
-                const currentVote = s.user_vote;
-                let newUpvotes = s.upvotes;
-                let newDownvotes = s.downvotes;
-                let newVote = direction;
+                if (deleteError) {
+                    console.error('Delete vote error:', deleteError);
+                    throw deleteError;
+                }
+                console.log('Vote removed from table');
 
-                if (currentVote === direction) {
-                    // Toggle off
-                    newVote = null as any;
-                    if (direction === 'up') newUpvotes--;
-                    else newDownvotes--;
-                    
-                    // Remove vote from DB
-                    supabase.from('supplier_votes').delete()
-                        .match({ supplier_id: supplierId, user_id: session.user.id })
-                        .then();
-                        
-                    // Update count in DB
-                    supabase.rpc('decrement_vote', { row_id: supplierId, vote_type: direction }).then(); // Custom RPC or manual update
-                    // Since we don't have RPC, we do manual update (race condition risk but okay for MVP)
-                    const updateField = direction === 'up' ? 'upvotes' : 'downvotes';
-                    supabase.from('suppliers').update({ [updateField]: s[updateField] - 1 }).eq('id', supplierId).then();
+                const { error: rpcError } = await supabase.rpc('decrement_vote', { row_id: supplierId, vote_type: direction });
+                if (rpcError) {
+                    console.error('Decrement RPC error:', rpcError);
+                    throw rpcError;
+                }
+                console.log('Vote count decremented');
 
-                } else {
-                    // Change vote or new vote
-                    if (currentVote) {
-                        // Remove old vote effect
-                        if (currentVote === 'up') newUpvotes--;
-                        else newDownvotes--;
-                    }
-                    
-                    // Add new vote effect
-                    if (direction === 'up') newUpvotes++;
-                    else newDownvotes++;
-
-                    // Upsert vote
-                    supabase.from('supplier_votes').upsert({
-                        supplier_id: supplierId,
-                        user_id: session.user.id,
-                        vote_direction: direction
-                    }, { onConflict: 'supplier_id, user_id' }).then();
-
-                     // Update counts (simplified)
-                     // Ideally use RPC to increment/decrement atomically
-                     const updates: any = {};
-                     if (direction === 'up') updates.upvotes = newUpvotes;
-                     else updates.downvotes = newDownvotes;
-                     // Note: This logic is complex to sync perfectly without backend functions.
-                     // For now, just updating UI is key.
+            } else {
+                if (currentVote) {
+                     console.log('Removing old vote...', currentVote);
+                     const { error: rpcDecError } = await supabase.rpc('decrement_vote', { row_id: supplierId, vote_type: currentVote });
+                     if (rpcDecError) {
+                        console.error('Decrement RPC error (swap):', rpcDecError);
+                        throw rpcDecError;
+                     }
+                }
+                
+                console.log('Incrementing new vote...', direction);
+                const { error: rpcIncError } = await supabase.rpc('increment_vote', { row_id: supplierId, vote_type: direction });
+                if (rpcIncError) {
+                    console.error('Increment RPC error:', rpcIncError);
+                    throw rpcIncError;
                 }
 
-                return {
-                    ...s,
-                    upvotes: newUpvotes,
-                    downvotes: newDownvotes,
-                    user_vote: newVote as 'up' | 'down' | null
-                };
-            }));
+                console.log('Upserting vote record...');
+                const { error: upsertError } = await supabase.from('supplier_votes').upsert({
+                    supplier_id: supplierId,
+                    user_id: session.user.id,
+                    vote_direction: direction
+                }, { onConflict: 'supplier_id, user_id' });
 
+                if (upsertError) {
+                    console.error('Upsert vote error:', upsertError);
+                    throw upsertError;
+                }
+                console.log('Vote record upserted');
+            }
+            console.log('Vote update complete');
         } catch (error) {
-            Alert.alert('Error', 'Failed to vote');
+            console.error('Vote error:', error);
+            // Revert on error
+            setResults(results); 
+            Alert.alert('Error', 'Failed to submit vote');
         }
     }
 
