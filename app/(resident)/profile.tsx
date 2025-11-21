@@ -35,7 +35,10 @@ export default function ResidentProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      setLoading(false);
+      return;
+    }
 
     async function loadData() {
       try {
@@ -54,7 +57,7 @@ export default function ResidentProfile() {
                 .from('estates')
                 .select('name')
                 .eq('id', profileData.estate_id)
-                .single();
+                .maybeSingle();
             estateName = estate?.name || '';
         }
 
@@ -66,7 +69,12 @@ export default function ResidentProfile() {
             email: session?.user.email || '',
             estate: { name: estateName }
         });
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        Alert.alert('Error', 'Failed to load profile data');
+      }
 
+      try {
         // 2. Get My Reviews
         const { data: reviewsData, error: reviewsError } = await supabase
           .from('reviews')
@@ -78,10 +86,10 @@ export default function ResidentProfile() {
         
         // @ts-ignore
         setReviews(reviewsData || []);
-
       } catch (error) {
-        console.error('Error loading profile:', error);
-        Alert.alert('Error', 'Failed to load profile data');
+        console.error('Error loading reviews:', error);
+        // Fail silently for reviews or show a separate error if needed, 
+        // but don't block profile from showing.
       } finally {
         setLoading(false);
       }
